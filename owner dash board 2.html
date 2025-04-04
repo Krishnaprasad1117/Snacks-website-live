@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Owner Dashboard</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+      color: #2e7d32;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+    }
+    th {
+      background: #388e3c;
+      color: white;
+    }
+    button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      cursor: pointer;
+    }
+    .complete {
+      background: #43a047;
+    }
+    .delete {
+      background: #e53935;
+    }
+  </style>
+</head>
+<body>
+  <h2>Owner Dashboard - Orders</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Address</th>
+        <th>Delivery</th>
+        <th>Items</th>
+        <th>Total (₹)</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="orderTableBody"></tbody>
+  </table>
+
+  <script>
+    function loadOrders() {
+      const tbody = document.getElementById('orderTableBody');
+      const orders = JSON.parse(localStorage.getItem('orders')) || [];
+      tbody.innerHTML = '';
+
+      orders.forEach((order, index) => {
+        const row = document.createElement('tr');
+        const itemList = order.items.map(item => `${item.quantity} x ${item.name}`).join(', ');
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${order.name}</td>
+          <td>${order.phone}</td>
+          <td>${order.address}</td>
+          <td>${order.deliveryDate} ${order.deliveryTime}</td>
+          <td>${itemList}</td>
+          <td>${order.totalAmount}</td>
+          <td>
+            <button class="complete" onclick="markComplete(${index})">Complete</button>
+            <button class="delete" onclick="deleteOrder(${index})">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function markComplete(index) {
+      alert(`Order ${index + 1} marked complete.`);
+    }
+
+    function deleteOrder(index) {
+      const orders = JSON.parse(localStorage.getItem('orders')) || [];
+      orders.splice(index, 1);
+      localStorage.setItem('orders', JSON.stringify(orders));
+      loadOrders();
+    }
+
+    loadOrders();
+  </script>
+</body>
+</html>

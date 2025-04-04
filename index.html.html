@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Order Snacks</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #fff3e0;
+      margin: 0;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+      color: #e65100;
+    }
+    form {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #e0e0e0;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      font-weight: 600;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background: #ff5722;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      width: 100%;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #e64a19;
+    }
+  </style>
+</head>
+<body>
+  <h2>Order Your Favorite Snacks</h2>
+  <form id="orderForm">
+    <div class="form-group">
+      <label>Name:</label>
+      <input type="text" id="name" required />
+    </div>
+    <div class="form-group">
+      <label>Phone:</label>
+      <input type="tel" id="phone" required />
+    </div>
+    <div class="form-group">
+      <label>Address:</label>
+      <input type="text" id="address" required />
+    </div>
+    <div class="form-group">
+      <label>Delivery Date:</label>
+      <input type="date" id="deliveryDate" required />
+    </div>
+    <div class="form-group">
+      <label>Delivery Time:</label>
+      <input type="time" id="deliveryTime" required />
+    </div>
+    <div class="form-group">
+      <label>Chogodi (₹50 for 50pcs):</label>
+      <input type="number" id="chogodiQty" min="0" />
+    </div>
+    <div class="form-group">
+      <label>Gavalu (₹60 for 50pcs):</label>
+      <input type="number" id="gavaluQty" min="0" />
+    </div>
+    <button type="submit">Place Order</button>
+  </form>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+
+    document.getElementById('orderForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const phone = document.getElementById('phone').value;
+      const address = document.getElementById('address').value;
+      const deliveryDate = document.getElementById('deliveryDate').value;
+      const deliveryTime = document.getElementById('deliveryTime').value;
+      const chogodiQty = parseInt(document.getElementById('chogodiQty').value) || 0;
+      const gavaluQty = parseInt(document.getElementById('gavaluQty').value) || 0;
+
+      if (chogodiQty === 0 && gavaluQty === 0) {
+        alert('Please order at least one item!');
+        return;
+      }
+
+      const items = [];
+      if (chogodiQty > 0) items.push({ name: 'Chogodi', quantity: chogodiQty, price: 50 });
+      if (gavaluQty > 0) items.push({ name: 'Gavalu', quantity: gavaluQty, price: 60 });
+
+      const totalAmount = items.reduce((total, item) => total + item.price * item.quantity, 0);
+
+      const newOrder = {
+        name,
+        phone,
+        address,
+        deliveryDate,
+        deliveryTime,
+        items,
+        totalAmount
+      };
+
+      const existingOrders = JSON.parse(localStorage.getItem('orders')) || [];
+      existingOrders.push(newOrder);
+      localStorage.setItem('orders', JSON.stringify(existingOrders));
+
+      // Notify the owner via push
+      if ('serviceWorker' in navigator && 'Notification' in window) {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            navigator.serviceWorker.ready.then(reg => {
+              reg.showNotification('New Order Received!', {
+                body: `${name} placed an order. Total: ₹${totalAmount}`,
+                icon: 'https://cdn-icons-png.flaticon.com/512/1046/1046784.png',
+              });
+            });
+          }
+        });
+      }
+
+      alert('Order placed successfully!');
+      this.reset();
+    });
+  </script>
+</body>
+</html>
